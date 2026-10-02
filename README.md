@@ -46,12 +46,6 @@ README.md
 - Node.js 18+
 - PostgreSQL
 
-Install the dependencies:
-
-```bash
-npm install
-```
-
 Create two PostgreSQL databases:
 
 ```text
@@ -61,7 +55,13 @@ diagnostic_booking_test
 
 Create a `.env` file using `.env.example` and update the database credentials and secrets.
 
-Run the database setup:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Set up the database:
 
 ```bash
 npm run db:setup
@@ -85,7 +85,7 @@ The server will run at:
 http://localhost:3000
 ```
 
-For production-style start:
+For a normal start:
 
 ```bash
 npm start
@@ -121,24 +121,18 @@ Run the automated tests using:
 npm test
 ```
 
-The tests use a separate PostgreSQL database so that the main application database is not affected.
+Tests use a separate PostgreSQL database so the main application database is not affected.
 
 The tests cover:
 
-- Signup
-- Login
-- Authentication
-- Unauthorized requests
-- Diagnostic centres
-- Diagnostic tests
-- Bookings
-- Booking ownership
+- Signup and login
+- Authentication and unauthorized requests
+- Diagnostic centres and tests
+- Bookings and ownership
 - Booking cancellation
-- Successful payments
-- Failed payments
+- Successful and failed payments
 - Payment webhooks
-- Duplicate webhook events
-- Multiple identical webhook events
+- Duplicate and repeated webhook events
 
 ## API Endpoints
 
@@ -167,7 +161,7 @@ Authorization: Bearer <token>
 
 ## Example API Requests
 
-### 1. Signup
+### Signup
 
 ```http
 POST /auth/signup
@@ -182,9 +176,7 @@ Content-Type: application/json
 }
 ```
 
-The response contains a JWT token.
-
-### 2. Login
+### Login
 
 ```http
 POST /auth/login
@@ -198,9 +190,9 @@ Content-Type: application/json
 }
 ```
 
-Use the returned token for protected requests.
+The response contains a JWT token for protected requests.
 
-### 3. Create Booking
+### Create Booking
 
 ```http
 POST /bookings
@@ -216,9 +208,9 @@ Content-Type: application/json
 }
 ```
 
-The booking amount is taken from the price of the selected diagnostic test.
+The booking amount is taken from the selected diagnostic test.
 
-### 4. Make a Payment
+### Make Payment
 
 ```http
 POST /payments
@@ -233,18 +225,11 @@ Content-Type: application/json
 }
 ```
 
-`result` can be:
-
-```text
-SUCCESS
-FAILED
-```
+`result` can be `SUCCESS` or `FAILED`.
 
 A successful payment changes the booking status to `CONFIRMED`.
 
 ## Booking Status
-
-The booking can have the following statuses:
 
 ```text
 PENDING
@@ -260,7 +245,6 @@ PENDING -> CONFIRMED
 PENDING -> FAILED
 FAILED  -> CONFIRMED
 FAILED  -> FAILED
-
 PENDING / FAILED / CONFIRMED -> CANCELLED
 ```
 
@@ -274,7 +258,7 @@ The webhook endpoint is:
 POST /payments/webhook
 ```
 
-It requires the following header:
+It requires:
 
 ```text
 x-webhook-secret: <WEBHOOK_SECRET>
@@ -293,11 +277,9 @@ Example request:
 
 Each webhook contains a unique `event_id`.
 
-The `event_id` is stored in the database with a unique constraint. If the same webhook is received again, it is treated as a duplicate and no second payment is created.
+The `event_id` is stored with a unique constraint. If the same webhook is received again, it is treated as a duplicate and no second payment is created.
 
-Payment creation and booking update are handled in the same database transaction.
-
-If something goes wrong while processing the webhook, the transaction is rolled back.
+Payment creation and booking updates are handled in the same database transaction. If processing fails, the transaction is rolled back.
 
 ## Database
 
@@ -312,7 +294,7 @@ payments
 webhook_events
 ```
 
-The tables use primary keys, foreign keys and basic constraints.
+The tables use primary keys, foreign keys, and basic constraints.
 
 Direct SQL queries are used through the `pg` library.
 
@@ -324,12 +306,9 @@ A Postman collection is included in:
 postman_collection.json
 ```
 
-It can be imported into:
+It can be imported into Postman or Thunder Client.
 
-- Postman
-- Thunder Client
-
-The APIs can be tested in the following order:
+Suggested testing order:
 
 ```text
 Signup
@@ -345,7 +324,7 @@ With Thunder Client, the JWT token needs to be copied manually into the Authoriz
 
 ## Error Handling
 
-The API returns appropriate HTTP status codes for common cases:
+Common HTTP responses:
 
 ```text
 400 - Invalid request
@@ -355,7 +334,7 @@ The API returns appropriate HTTP status codes for common cases:
 409 - Action is not allowed in the current state
 ```
 
-Errors are returned in this format:
+Errors are returned as:
 
 ```json
 {
@@ -370,7 +349,7 @@ Errors are returned in this format:
 - There are no admin roles in this version.
 - Cancelling a paid booking does not process a refund.
 - Webhooks use a shared secret instead of a signed payload.
-- The project is intentionally kept simple and uses direct SQL instead of an ORM.
+- The project uses direct SQL instead of an ORM to keep the implementation simple.
 
 ## Future Improvements
 
